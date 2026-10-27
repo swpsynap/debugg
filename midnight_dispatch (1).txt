@@ -1,0 +1,349 @@
+==================== SECTION 1: QUESTION DETAILS ====================
+
+A string [b]S[/b] of length [b]n[/b] contains only A and B. A single pass examines adjacent positions (1,2), (2,3), ..., (n-1,n) in that order. Whenever the current pair is BA, it is swapped to AB. Later comparisons use the already modified string.
+Exactly one comparison is omitted: that comparison makes no change, even if it would have swapped BA. All other comparisons proceed normally. The omitted comparison may also be one where no swap would occur.
+You are given an observation string [b]T[/b] of the same length. Each A or B in [b]T[/b] must match the resulting character at that position; ? means that position is unknown. Find the smallest 1-based position of an omitted comparison that is consistent with all observations. If none is possible, the answer is [b]-1.[/b]
+[b]You are required to debug the following function:[/b]
+[code-c]int* MidnightDispatch(int n, char* source, char* observed, int* returnSize);[/code][code-cpp]vector&lt;int&gt; MidnightDispatch(int n, string&amp; source, string&amp; observed);[/code][code-java]static int[] MidnightDispatch(int n, String source, String observed)[/code][code-python]def MidnightDispatch(n, source, observed):[/code]
+
+The function accepts [b]n[/b] and the strings [b]S[/b] (source) and [b]T[/b] (observed). It must return a single array containing one integer: the smallest valid omitted comparison position, or -1 if none exists. In C, the size of the returned array is stored in [b]returnSize.[/b]
+
+[b]Note:[/b][ul][li]The pass must use the current, already modified string, not separate swaps on the original string.[/li][li]The omitted comparison may be one that would not change the string.[/li][li]Every visible character of [b]T[/b] (A or B) must match the result.[/li][/ul]
+[b]Input Format:[/b][ul][li]The first line contains [b]n.[/b][/li][li]The second line contains the string [b]S[/b] (only A and B).[/li][li]The third line contains the string [b]T[/b] (A, B or ?).[/li][/ul][b]Input will be read from the STDIN by the candidate.[/b]
+
+[b]Output Format:[/b]
+Print one integer: the smallest valid omitted comparison position, or [b]-1[/b] if none exists.
+[b]The output will be matched to the candidate&#39;s output printed on the STDOUT.[/b]
+
+[b]Constraints:[/b][ul][li]2 &le; [b]n[/b] &le; 800[/li][li][b]S[/b] and [b]T[/b] both have length [b]n[/b][/li][li][b]S[/b] contains only A and B; [b]T[/b] contains only A, B or ?[/li][/ul]
+[b]Example:[/b]
+[b]Input:[/b]
+7
+BBAAABA
+B?BAA?B
+[b]Output:[/b]
+3
+[b]Explanation:[/b]
+With comparison 3 omitted, the pass produces BABAAAB, which agrees with every visible character of [b]T.[/b] Omitting comparison 1 or 2 does not match the observation, so the answer is [b]3.[/b]
+
+[b]Sample Input[/b]
+6
+BAABAA
+AAAB??
+[b]Sample Output[/b]
+-1
+
+
+==================== SECTION 2: CODE TEMPLATE ====================
+
+----- Language: C -----
+
+Prefix:
+int* MidnightDispatch(int n, char* source, char* observed, int* returnSize);
+
+int main()
+{
+    //Input read from STDIN
+    int *p = MidnightDispatch(n, source, observed, &returnSize);
+    //Value in p is printed to STDOUT
+    return 0;
+}
+
+Suffix:
+int* MidnightDispatch(int n, char* source, char* observed, int* returnSize) {
+/* Write your code here. */
+    int* result = (int*)malloc(sizeof(int));
+    result[0] = -1;
+    *returnSize = 1;
+    char* work = (char*)malloc((size_t)n + 1);
+    for (int skip = 0; skip < n - 1; ++skip) {
+        memcpy(work, source, (size_t)n + 1);
+        for (int i = 0; i < n - 1; ++i) {
+            if (i == skip + 1) continue;
+            if (work[i] == 'B' && work[i + 1] == 'A') {
+                work[i] = 'A';
+                work[i + 1] = 'B';
+            }
+        }
+        int valid = 1;
+        for (int j = 0; j < n; ++j) {
+            if (observed[j] != '?' && observed[j] != source[j]) {
+                valid = 0;
+                break;
+            }
+        }
+        if (valid) {
+            result[0] = skip + 1;
+            free(work);
+            return result;
+        }
+    }
+    free(work);
+    return result;
+}
+
+----- Language: C++ -----
+
+Prefix:
+vector<int> MidnightDispatch(int n, string& source, string& observed);
+
+int main()
+{
+    //Input read from STDIN
+    vector<int> p = MidnightDispatch(n, source, observed);
+    //Value in p is printed to STDOUT
+    return 0;
+}
+
+Suffix:
+vector<int> MidnightDispatch(int n, string& source, string& observed) {
+/* Write your code here. */
+    string work = source;
+    for (int skip = 0; skip < n - 1; ++skip) {
+        work = source;
+        for (int i = 0; i < n - 1; ++i) {
+            if (i == skip + 1) continue;
+            if (work[i] == 'B' && work[i + 1] == 'A') {
+                work[i] = 'A';
+                work[i + 1] = 'B';
+            }
+        }
+        bool valid = true;
+        for (int j = 0; j < n; ++j) {
+            if (observed[j] != '?' && observed[j] != source[j]) {
+                valid = false;
+                break;
+            }
+        }
+        if (valid) return {skip + 1};
+    }
+    return {-1};
+}
+
+----- Language: Java -----
+
+Prefix:
+class SolutionClass {
+    public static void main(String[] args) throws java.lang.Exception {
+        //Input read from STDIN
+        int[] p = MidnightDispatch(n, source, observed);
+        //Value in p is printed to STDOUT
+    }
+}
+
+Suffix:
+static int[] MidnightDispatch(int n, String source, String observed) {
+    /* Write your code here. */
+    char[] work = source.toCharArray();
+    for (int skip = 0; skip < n - 1; ++skip) {
+        for (int j = 0; j < n; ++j) work[j] = source.charAt(j);
+        for (int i = 0; i < n - 1; ++i) {
+            if (i == skip + 1) continue;
+            if (work[i] == 'B' && work[i + 1] == 'A') {
+                work[i] = 'A';
+                work[i + 1] = 'B';
+            }
+        }
+        boolean valid = true;
+        for (int j = 0; j < n; ++j) {
+            if (observed.charAt(j) != '?' && observed.charAt(j) != source.charAt(j)) {
+                valid = false;
+                break;
+            }
+        }
+        if (valid) return new int[]{skip + 1};
+    }
+    return new int[]{-1};
+}
+
+----- Language: Python -----
+
+Prefix:
+# Input read from STDIN
+p = MidnightDispatch(n, source, observed)
+# Values at p are printed to STDOUT
+
+Suffix:
+def MidnightDispatch(n, source, observed):
+    # Write your code here.
+    work = list(source)
+    for skip in range(n - 1):
+        for j in range(n):
+            work[j] = source[j]
+        for i in range(n - 1):
+            if i == skip + 1:
+                continue
+            if work[i] == 'B' and work[i + 1] == 'A':
+                work[i], work[i + 1] = 'A', 'B'
+        valid = True
+        for j in range(n):
+            if observed[j] != '?' and observed[j] != source[j]:
+                valid = False
+                break
+        if valid:
+            return [skip + 1]
+    return [-1]
+
+
+==================== SECTION 3: BASE TEMPLATE ====================
+
+----- Language: C -----
+
+Template:
+#include<stdio.h>
+#include<stdlib.h>
+#include<string.h>
+
+int* MidnightDispatch(int n, char* source, char* observed, int* returnSize);
+
+int main()
+{
+    int n;
+    scanf("%d", &n);
+    char *source = (char *)(malloc((n + 1) * sizeof(char)));
+    char *observed = (char *)(malloc((n + 1) * sizeof(char)));
+    scanf("%s", source);
+    scanf("%s", observed);
+    int returnSize = 0;
+    __DEBUG_START(127);
+    int *p = MidnightDispatch(n, source, observed, &returnSize);
+    __DEBUG_END(127);
+    printf("%d\n", p[0]);
+    return 0;
+}
+
+----- Language: C++ -----
+
+Template:
+#include<bits/stdc++.h>
+using namespace std;
+
+vector<int> MidnightDispatch(int n, string& source, string& observed);
+
+int main()
+{
+    int n;
+    string source, observed;
+    cin >> n >> source >> observed;
+    __DEBUG_START(127);
+    vector<int> p = MidnightDispatch(n, source, observed);
+    __DEBUG_END(127);
+    cout << p[0] << "\n";
+    return 0;
+}
+
+----- Language: Java -----
+
+Template:
+import java.util.*;
+
+class SolutionClass {
+    public static void main(String[] args) throws java.lang.Exception {
+        Scanner scan = new Scanner(System.in);
+        int n = scan.nextInt();
+        String source = scan.next();
+        String observed = scan.next();
+        CojUserHelperFunctions.__DEBUG_START(127);
+        int[] p = MidnightDispatch(n, source, observed);
+        CojUserHelperFunctions.__DEBUG_END(127);
+        System.out.println(p[0]);
+    }
+    /*{__Include_Candidate_Code_Starts__}*/
+}
+
+----- Language: Python -----
+
+Template:
+#{__Include_Candidate_Code_Starts__}#
+n = int(input())
+source = input().strip()
+observed = input().strip()
+p = MidnightDispatch(n, source, observed)
+print(p[0])
+
+
+==================== SECTION 4: TEST CASES ====================
+
+sample-input-1
+11
+BBBABBBABBA
+BBBABBABBAB
+sample-output-1
+3
+
+sample-input-2
+14
+BABABABBABAAAA
+ABABABBBAAA??B
+sample-output-2
+8
+
+basic-input-1
+8
+BABBBBAA
+ABBBBAAB
+basic-output-1
+2
+
+basic-input-2
+17
+BABBABABAAAAABABB
+ABBABAB?AAABAABBB
+basic-output-2
+12
+
+basic-input-3
+21
+BBABBBAAABABBBAABBAAB
+BABBBB?AAABBB?ABBAABB
+basic-output-3
+6
+
+basic-input-4
+27
+BBBBBAAABBABABBAAAAABBAAAAA
+BBBBAAAB?ABABBAAAAAB?BAAAAA
+basic-output-4
+22
+
+edge-input-1
+70
+BBBAABBAAAAABBBBBBAAABBBBBAABBAAABAABBABAABABBABAABAABBBBBBAAAAABABABA
+BBAABBAAAAABBBBBBAAABBBBBAABBAAABAABBABAABABBABAABAABBBBBBAAAABAABABAB
+edge-output-1
+63
+
+edge-input-2
+88
+BBABBAAABBABABBABAABBBABBAAABBABABBABAABBBABBAAABBABABBABAABBBABBAAABBABABBABAABBBABBAAA
+BBABBAAABBABABBABAABBBABBAAABBABABBABAABBBABBAAABBABABBABAABBBABBAAABBABABBABAABBBABBAAA
+edge-output-2
+-1
+
+corner-input-1
+39
+BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB
+corner-output-1
+-1
+
+corner-input-2
+45
+AAAAABBABAABBABBABBABBBBAABBAABBABBABAAAABBBA
+AAA?ABABAA?BABBAB?ABBBB?ABBAA?BABBABA?AABBBBA
+corner-output-2
+44
+
+boundary-input-1
+2
+AB
+AB
+boundary-output-1
+1
+
+boundary-input-2
+800
+BBAAAABBABAAAAAABBAABBAABBBBABAABBAABABBBBAAAAAAAABBBABBABAABBBABBAABAABAABABBBABBBBABAABBBBBBBABBAABBABBAAAAABBBABAABBAAAABBBBAAABBBAAAAAABAABAAAABBBAAABBABBAAAAAABAAAABBAAAABAABBABABABBBBAAAAAABAAABABAAAABBAAABABABBBABBBBBAABBBBAAAAAAAABBAAAABAABBBAAAABBBAABBBBBBBAAABBABAAAAABBBBAABBABBABBBAAAABABABBBAAABAAABBABABBBAABAABBBBABAAABABABBBABABBBBAABABBAAAABABAAABBBAABABABBAAABBAAAABBAABBBBBABBBBBABBBABBBABBBABAABBBBAAABABABAABAABBABAABBAABBAABAABBBBBBABABBABBBBBBABAABAABBBABABBBBBBABABABABABABABABBAAAABBBABABAAAAAAAAABAAABBBBABAABBBABBBABABBAAABBBAAABBABAABAAABBBABBAABABAABBAAABABBAABABABAABBBAAAAABABAAABABAAAAAAAAAABBBAABABABBABAAAABBAABBBBABBBBBABBABAABAAABBBABBABABAABABABAABBBAABABBBAAAABABAABAABAABBABABBABBABABBBAABAABBAABBBBABBBBABABABBBBBABBBBAABBAABBBBBBAAABBAABBABBAAAABBAABBABBBBABA
+BAAAABBABAAAAAABBAABBAABBBBABAABBAABABBBBAAAAAAAABBBABBABAABBBABBAABAABAABABBBABBBBABAABBBBBBBABBAABBABBAAAAABBBABAABBAAAABBBBAAABBBAAAAAABAABAAAABBBAAABBABBAAAAAABAAAABBAAAABAABBABABABBBBAAAAAABAAABABAAAABBAAABABABBBABBBBBAABBBBAAAAAAAABBAAAABAABBBAAAABBBAABBBBBBBAAABBABAAAAABBBBAABBABBABBBAAAABABABBBAAABAAABBABABBBAABAABBBBABAAABABABBBABABBBBAABABBAAAABABAAABBBAABABABBAAABBAAAABBAABBBBBABBBBBBABBABBBABBBABAABBBBAAABABABAABAABBABAABBAABBAABAABBBBBBABABBABBBBBBABAABAABBBABABBBBBBABABABABABABABABBAAAABBBABABAAAAAAAAABAAABBBBABAABBBABBBABABBAAABBBAAABBABAABAAABBBABBAABABAABBAAABABBAABABABAABBBAAAAABABAAABABAAAAAAAAAABBBAABABABBABAAAABBAABBBBABBBBBABBABAABAAABBBABBABABAABABABAABBBAABABBBAAAABABAABAABAABBABABBABBABABBBAABAABBAABBBBABBBBABABABBBBBABBBBAABBAABBBBBBAAABBAABBABBAAAABBAABBABBBBABAB
+boundary-output-2
+398

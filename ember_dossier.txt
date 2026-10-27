@@ -1,0 +1,901 @@
+==================== SECTION 1: QUESTION DETAILS ====================
+
+Two sequences [b]A[/b] (length [b]P[/b]) and [b]B[/b] (length [b]Q[/b]) are read by separate iterators, each starting before its first value. An action labelled A consumes the next unread value of [b]A,[/b] and an action labelled B consumes the next unread value of [b]B.[/b] An action is legal only if the chosen sequence still has an unread value.
+Immediately after each action, a watcher reports the sum of the next unread value of [b]A[/b] and the next unread value of [b]B,[/b] where a sequence with no unread values contributes 0.
+You are given a recorded history of [b]M[/b] actions, each with its label and watcher report, in their original order. The full history had exactly [b]M + 1[/b] actions, but one complete record was lost. Find where the missing action could be inserted, and its label, so that every action is legal and every recorded report is correct. The missing action has no report to check.
+Positions are 1-based in the reconstructed history. If several reconstructions work, choose the smallest position, and A before B at the same position. If none works, the answer is [b]-1.[/b]
+[b]You are required to debug the following function:[/b]
+[code-c]int* EmberDossier(int P, int Q, int M, int* V, char* S, int* W, int* returnSize);[/code][code-cpp]vector&lt;int&gt; EmberDossier(int P, int Q, int M, vector&lt;int&gt;&amp; V, string&amp; S, vector&lt;int&gt;&amp; W);[/code][code-java]static int[] EmberDossier(int P, int Q, int M, int[] V, String S, int[] W);[/code][code-python]def EmberDossier(P, Q, M, V, S, W):[/code]
+
+The function accepts [b]P, Q, M,[/b] a single 0-indexed array [b]V[/b] of length [b]P + Q[/b] holding the values of [b]A[/b] followed by the values of [b]B[/b] (so [b]A&#91;i&#93;[/b] is [b]V&#91;i&#93;[/b] and [b]B&#91;j&#93;[/b] is [b]V&#91;P + j&#93;[/b]), the string [b]S[/b] of the [b]M[/b] recorded labels and the 0-indexed array [b]W[/b] of their watcher reports. It must return a single array of two integers [position, label], where label is 0 for A and 1 for B, or [-1, -1] if no reconstruction exists. In C, the size of the returned array is stored in [b]returnSize.[/b]
+
+[b]Note:[/b][ul][li]The missing action may be placed before the first recorded action, between any two of them, or after the last.[/li][li]The recorded history may be inconsistent with every possible reconstruction; then the answer is [b]-1.[/b][/li][/ul]
+[b]Input Format:[/b][ul][li]The first line contains [b]P, Q[/b] and [b]M.[/b][/li][li]The second line contains the [b]P[/b] values of [b]A.[/b][/li][li]The third line contains the [b]Q[/b] values of [b]B.[/b][/li][li]Each of the next [b]M[/b] lines contains a label (A or B) and an integer report.[/li][/ul][b]Input will be read from the STDIN by the candidate.[/b]
+
+[b]Output Format:[/b]
+Print the position and the label of the missing action separated by a space, or [b]-1[/b] if none exists.
+[b]The output will be matched to the candidate&#39;s output printed on the STDOUT.[/b]
+
+[b]Constraints:[/b][ul][li]1 &le; [b]P, Q[/b] &le; 200[/li][li]0 &le; [b]M[/b] &le; [b]P + Q - 1[/b][/li][li]&minus;10[sup]6[/sup] &le; [b]A&#91;i&#93;, B&#91;j&#93;[/b] &le; 10[sup]6[/sup][/li][li]&minus;2*10[sup]6[/sup] &le; each report &le; 2*10[sup]6[/sup][/li][/ul]
+[b]Example:[/b]
+[b]Input:[/b]
+3 2 3
+4 1 7
+2 5
+A 3
+A 12
+B 7
+[b]Output:[/b]
+2 B
+[b]Explanation:[/b]
+The first A consumes 4, leaving 1 and 2 (sum [b]3[/b]). Inserting B as action 2 consumes 2, leaving 1 and 5. The next A consumes 1, leaving 7 and 5 (sum [b]12[/b]), and the final B consumes 5, leaving 7 and nothing (sum [b]7[/b]). No earlier position works, so the answer is [b]2 B.[/b]
+
+[b]Sample Input[/b]
+2 2 2
+0 0
+0 0
+A 0
+B 0
+[b]Sample Output[/b]
+1 A
+
+
+==================== SECTION 2: CODE TEMPLATE ====================
+
+----- Language: C -----
+
+Prefix:
+int* EmberDossier(int P, int Q, int M, int* V, char* S, int* W, int* returnSize);
+
+int main()
+{
+    //Input read from STDIN
+    int *p = EmberDossier(P, Q, M, V, S, W, &returnSize);
+    //Value in p is printed to STDOUT
+    return 0;
+}
+
+Suffix:
+int* EmberDossier(int P, int Q, int M, int* V, char* S, int* W, int* returnSize)
+{
+/* Write your code here. */
+    int* result = (int*)malloc(2 * sizeof(int));
+    result[0] = -1;
+    result[1] = -1;
+    *returnSize = 2;
+    for (int g = 0; g < M; g++)
+    {
+        for (int c = 0; c < 2; c++)
+        {
+            int x = 0, y = 0, ok = 1;
+            for (int j = 0; j <= M && ok; j++)
+            {
+                char act;
+                int r = -1;
+                if (j == g)
+                    act = (c == 0) ? 'A' : 'B';
+                else
+                {
+                    r = (j < g) ? j : j - 1;
+                    act = S[r];
+                }
+                if (act == 'A')
+                {
+                    if (x > P)
+                        ok = 0;
+                    x++;
+                }
+                else
+                {
+                    if (y >= Q)
+                        ok = 0;
+                    y++;
+                }
+                if (ok && r != -1)
+                {
+                    int frontA = (x < P) ? V[x] : 0;
+                    int frontB = (y < Q) ? V[P + y] : 0;
+                    if (frontA + frontB != W[r])
+                        ok = 0;
+                }
+            }
+            if (ok)
+            {
+                result[0] = g + 1;
+                result[1] = c;
+                return result;
+            }
+        }
+    }
+    return result;
+}
+
+----- Language: C++ -----
+
+Prefix:
+vector<int> EmberDossier(int P, int Q, int M, vector<int>& V, string& S, vector<int>& W);
+
+int main()
+{
+    //Input read from STDIN
+    vector<int> p = EmberDossier(P, Q, M, V, S, W);
+    //Value in p is printed to STDOUT
+    return 0;
+}
+
+Suffix:
+vector<int> EmberDossier(int P, int Q, int M, vector<int>& V, string& S, vector<int>& W)
+{
+/* Write your code here. */
+    for (int g = 0; g < M; g++)
+    {
+        for (int c = 0; c < 2; c++)
+        {
+            int x = 0, y = 0, ok = 1;
+            for (int j = 0; j <= M && ok; j++)
+            {
+                char act;
+                int r = -1;
+                if (j == g)
+                    act = (c == 0) ? 'A' : 'B';
+                else
+                {
+                    r = (j < g) ? j : j - 1;
+                    act = S[r];
+                }
+                if (act == 'A')
+                {
+                    if (x > P)
+                        ok = 0;
+                    x++;
+                }
+                else
+                {
+                    if (y >= Q)
+                        ok = 0;
+                    y++;
+                }
+                if (ok && r != -1)
+                {
+                    int frontA = (x < P) ? V[x] : 0;
+                    int frontB = (y < Q) ? V[P + y] : 0;
+                    if (frontA + frontB != W[r])
+                        ok = 0;
+                }
+            }
+            if (ok)
+                return {g + 1, c};
+        }
+    }
+    return {-1, -1};
+}
+
+----- Language: Java -----
+
+Prefix:
+class SolutionClass {
+    public static void main(String[] args) throws java.lang.Exception {
+        //Input read from STDIN
+        int[] p = EmberDossier(P, Q, M, V, S, W);
+        //Value in p is printed to STDOUT
+    }
+}
+
+Suffix:
+static int[] EmberDossier(int P, int Q, int M, int[] V, String S, int[] W) {
+    /* Write your code here. */
+    for (int g = 0; g < M; g++) {
+        for (int c = 0; c < 2; c++) {
+            int x = 0, y = 0;
+            boolean ok = true;
+            for (int j = 0; j <= M && ok; j++) {
+                char act;
+                int r = -1;
+                if (j == g)
+                    act = (c == 0) ? 'A' : 'B';
+                else {
+                    r = (j < g) ? j : j - 1;
+                    act = S.charAt(r);
+                }
+                if (act == 'A') {
+                    if (x > P)
+                        ok = false;
+                    x++;
+                } else {
+                    if (y >= Q)
+                        ok = false;
+                    y++;
+                }
+                if (ok && r != -1) {
+                    int frontA = (x < P) ? V[x] : 0;
+                    int frontB = (y < Q) ? V[P + y] : 0;
+                    if (frontA + frontB != W[r])
+                        ok = false;
+                }
+            }
+            if (ok)
+                return new int[]{g + 1, c};
+        }
+    }
+    return new int[]{-1, -1};
+}
+
+----- Language: Python -----
+
+Prefix:
+# Input read from STDIN
+p = EmberDossier(P, Q, M, V, S, W)
+# Values at p are printed to STDOUT
+
+Suffix:
+def EmberDossier(P, Q, M, V, S, W):
+    # Write your code here.
+    for g in range(M):
+        for c in range(2):
+            x = 0
+            y = 0
+            ok = True
+            for j in range(M + 1):
+                if not ok:
+                    break
+                r = -1
+                if j == g:
+                    act = 'A' if c == 0 else 'B'
+                else:
+                    r = j if j < g else j - 1
+                    act = S[r]
+                if act == 'A':
+                    if x > P:
+                        ok = False
+                    x += 1
+                else:
+                    if y >= Q:
+                        ok = False
+                    y += 1
+                if ok and r != -1:
+                    front_a = V[x] if x < P else 0
+                    front_b = V[P + y] if y < Q else 0
+                    if front_a + front_b != W[r]:
+                        ok = False
+            if ok:
+                return [g + 1, c]
+    return [-1, -1]
+
+
+==================== SECTION 3: BASE TEMPLATE ====================
+
+----- Language: C -----
+
+Template:
+#include<stdio.h>
+#include<stdlib.h>
+
+int* EmberDossier(int P, int Q, int M, int* V, char* S, int* W, int* returnSize);
+
+int main()
+{
+    int P, Q, M;
+    scanf("%d %d %d", &P, &Q, &M);
+    int *V = (int *)(malloc((P + Q) * sizeof(int)));
+    char *S = (char *)(malloc((M + 1) * sizeof(char)));
+    int *W = (int *)(malloc((M + 1) * sizeof(int)));
+    for(int i = 0; i < P + Q; i++)
+        scanf("%d", &V[i]);
+    for(int i = 0; i < M; i++)
+        scanf(" %c %d", &S[i], &W[i]);
+    S[M] = '\0';
+    int returnSize = 0;
+    __DEBUG_START(127);
+    int *p = EmberDossier(P, Q, M, V, S, W, &returnSize);
+    __DEBUG_END(127);
+    if(p[0] == -1)
+        printf("-1\n");
+    else
+        printf("%d %c\n", p[0], p[1] == 0 ? 'A' : 'B');
+    return 0;
+}
+
+----- Language: C++ -----
+
+Template:
+#include<bits/stdc++.h>
+using namespace std;
+
+vector<int> EmberDossier(int P, int Q, int M, vector<int>& V, string& S, vector<int>& W);
+
+int main()
+{
+    int P, Q, M;
+    cin >> P >> Q >> M;
+    vector<int> V(P + Q), W(M);
+    string S(M, ' ');
+    for(int i = 0; i < P + Q; i++)
+        cin >> V[i];
+    for(int i = 0; i < M; i++)
+        cin >> S[i] >> W[i];
+    __DEBUG_START(127);
+    vector<int> p = EmberDossier(P, Q, M, V, S, W);
+    __DEBUG_END(127);
+    if(p[0] == -1)
+        cout << -1 << "\n";
+    else
+        cout << p[0] << " " << (p[1] == 0 ? 'A' : 'B') << "\n";
+    return 0;
+}
+
+----- Language: Java -----
+
+Template:
+import java.util.*;
+
+class SolutionClass {
+    public static void main(String[] args) throws java.lang.Exception {
+        Scanner scan = new Scanner(System.in);
+        int P = scan.nextInt();
+        int Q = scan.nextInt();
+        int M = scan.nextInt();
+        int[] V = new int[P + Q];
+        int[] W = new int[M];
+        char[] s = new char[M];
+        for(int i = 0; i < P + Q; i++)
+            V[i] = scan.nextInt();
+        for(int i = 0; i < M; i++)
+        {
+            s[i] = scan.next().charAt(0);
+            W[i] = scan.nextInt();
+        }
+        String S = new String(s);
+        CojUserHelperFunctions.__DEBUG_START(127);
+        int[] p = EmberDossier(P, Q, M, V, S, W);
+        CojUserHelperFunctions.__DEBUG_END(127);
+        if(p[0] == -1)
+            System.out.println(-1);
+        else
+            System.out.println(p[0] + " " + (p[1] == 0 ? 'A' : 'B'));
+    }
+    /*{__Include_Candidate_Code_Starts__}*/
+}
+
+----- Language: Python -----
+
+Template:
+#{__Include_Candidate_Code_Starts__}#
+P, Q, M = map(int, input().split())
+V = list(map(int, input().split())) + list(map(int, input().split()))
+S = ""
+W = []
+for i in range(M):
+    s, w = input().split()
+    S += s
+    W.append(int(w))
+p = EmberDossier(P, Q, M, V, S, W)
+if p[0] == -1:
+    print(-1)
+else:
+    print(p[0], "A" if p[1] == 0 else "B")
+
+
+==================== SECTION 4: TEST CASES ====================
+
+sample-input-1
+3 3 3
+5 4 9
+4 6 6
+B 11
+A 10
+B 10
+sample-output-1
+4 A
+
+sample-input-2
+3 3 4
+3 0 2
+1 2 3
+A 1
+B 2
+A 4
+A 2
+sample-output-2
+5 B
+
+basic-input-1
+1 2 2
+1
+2 1
+B 1
+A 1
+basic-output-1
+-1
+
+basic-input-2
+3 3 3
+2 0 1
+0 2 2
+A 0
+B 2
+A 3
+basic-output-2
+2 B
+
+basic-input-3
+3 2 4
+3 3 3
+-1 -1
+A 2
+A 2
+B 2
+B 3
+basic-output-3
+5 A
+
+basic-input-4
+4 5 8
+2 2 1 0
+3 2 2 5 0
+B 4
+A 4
+B 4
+A 3
+A 2
+A 2
+B 5
+B 0
+basic-output-4
+8 B
+
+edge-input-1
+1 3 3
+2
+1 2 1
+A 1
+B 2
+B 1
+edge-output-1
+4 B
+
+edge-input-2
+6 1 6
+2 0 0 3 3 2
+3
+A 3
+A 3
+A 6
+A 6
+A 5
+A 3
+edge-output-2
+7 B
+
+corner-input-1
+3 3 5
+0 0 0
+0 0 0
+A 0
+B 0
+A 0
+A 0
+B 0
+corner-output-1
+1 B
+
+corner-input-2
+1 3 2
+1000000
+0 -1000000 1000000
+B 0
+A -1000000
+corner-output-2
+3 B
+
+boundary-input-1
+1 1 0
+-1000000
+-1000000
+boundary-output-1
+1 A
+
+boundary-input-2
+200 200 399
+7 6 3 5 2 3 2 2 8 7 6 5 2 1 2 2 0 7 0 8 6 6 0 9 5 1 4 5 0 9 2 8 7 2 4 0 0 3 1 1 2 7 4 4 2 5 6 9 1 6 1 9 3 9 1 0 7 2 5 8 2 5 6 0 6 1 8 6 0 5 8 6 1 9 4 4 7 9 6 1 8 5 3 9 9 0 8 4 1 7 7 2 3 8 4 6 2 9 9 3 9 8 2 6 9 0 2 5 7 4 4 3 6 8 9 4 2 5 3 0 6 8 9 0 3 1 9 3 9 5 3 2 3 0 6 8 5 2 6 8 5 7 0 1 5 0 2 5 6 4 2 6 9 2 0 9 2 5 6 2 0 4 3 1 4 1 5 8 7 0 8 0 5 1 3 8 3 3 4 2 0 3 5 9 5 0 4 3 0 2 1 9 0 9 9 3 3 6 7 8
+7 1 7 7 5 2 9 0 4 6 4 8 8 8 4 7 9 5 5 0 9 8 7 2 5 8 6 2 6 9 1 8 0 3 8 3 4 3 3 0 0 3 9 2 5 5 4 3 5 5 4 9 6 6 6 8 6 1 0 9 4 2 0 9 5 9 4 4 0 2 0 7 9 1 8 0 6 4 7 8 7 6 0 9 5 1 9 7 3 3 4 7 5 6 6 3 2 4 1 6 4 9 9 1 4 5 2 8 3 6 9 0 6 6 4 3 8 5 9 5 8 5 2 4 6 0 5 2 0 6 5 5 0 4 8 6 2 1 5 5 2 2 6 2 1 8 2 3 3 4 5 5 6 5 0 3 6 0 2 3 0 1 6 2 6 0 0 3 9 2 7 9 6 0 7 9 0 4 4 6 6 6 7 3 2 6 0 4 7 3 9 9 8 8 7 2 3 5 9 3
+A 13
+B 7
+B 13
+A 10
+B 10
+A 12
+A 9
+B 7
+B 4
+A 5
+A 4
+B 11
+B 2
+A 2
+B 6
+B 8
+B 6
+A 12
+A 11
+A 10
+A 9
+B 13
+B 13
+A 10
+B 10
+A 9
+B 5
+A 6
+A 6
+A 4
+A 11
+A 4
+A 12
+A 10
+B 13
+A 13
+B 15
+A 9
+A 18
+B 14
+B 14
+A 10
+A 6
+A 9
+B 4
+B 13
+A 14
+A 9
+B 8
+B 7
+A 16
+A 9
+A 15
+A 14
+B 9
+B 12
+B 15
+B 13
+B 9
+B 13
+A 8
+A 10
+A 6
+B 9
+B 1
+A 1
+B 8
+A 11
+B 3
+B 6
+B 11
+A 9
+B 4
+B 5
+B 4
+A 4
+B 4
+A 5
+A 10
+A 7
+A 7
+A 5
+A 8
+B 5
+A 6
+B 6
+B 9
+A 12
+A 4
+A 9
+B 15
+B 8
+A 3
+A 11
+A 5
+B 8
+B 8
+B 7
+B 6
+B 8
+A 14
+A 6
+B 6
+A 5
+A 12
+B 11
+A 6
+B 11
+A 14
+A 17
+A 11
+A 14
+A 15
+B 12
+A 6
+A 12
+B 12
+B 12
+B 14
+B 12
+A 7
+B 2
+A 9
+A 7
+B 6
+B 15
+B 10
+B 8
+B 6
+B 15
+B 11
+B 15
+B 10
+B 10
+B 6
+B 8
+B 6
+B 13
+A 7
+A 12
+A 15
+A 13
+A 8
+B 10
+B 2
+A 10
+A 5
+B 12
+B 4
+B 10
+B 8
+B 11
+A 11
+A 14
+A 16
+A 13
+B 14
+B 13
+B 12
+A 7
+A 14
+B 8
+B 17
+B 13
+B 9
+B 17
+B 15
+B 11
+A 8
+B 8
+A 6
+B 7
+A 13
+B 16
+A 16
+B 14
+B 15
+A 6
+A 14
+A 10
+A 7
+A 13
+A 13
+A 8
+A 9
+A 14
+B 14
+A 10
+B 7
+A 9
+A 5
+B 4
+B 6
+A 13
+A 13
+B 10
+A 4
+B 9
+A 15
+B 13
+B 18
+A 17
+B 17
+A 11
+B 3
+B 6
+B 7
+B 4
+A 8
+A 11
+B 17
+A 8
+A 10
+B 5
+B 8
+B 11
+A 14
+A 16
+B 7
+B 13
+B 13
+A 10
+B 8
+A 8
+A 7
+B 6
+B 11
+B 8
+B 12
+A 15
+A 17
+A 18
+B 14
+B 17
+A 12
+B 9
+A 7
+A 10
+B 7
+B 9
+A 7
+B 9
+A 6
+A 12
+B 6
+A 8
+B 13
+A 14
+B 11
+A 2
+B 0
+B 6
+B 5
+A 8
+B 8
+A 6
+A 14
+B 9
+B 13
+A 7
+B 11
+A 17
+B 15
+A 11
+A 9
+B 5
+B 4
+B 8
+A 7
+A 8
+B 8
+B 5
+B 5
+A 2
+A 8
+B 12
+B 8
+A 10
+B 9
+A 6
+A 3
+B 10
+B 4
+B 5
+A 9
+B 9
+A 11
+B 12
+A 9
+B 10
+A 12
+B 12
+A 5
+A 6
+A 10
+A 5
+A 7
+A 10
+B 11
+A 12
+A 10
+B 9
+A 7
+A 11
+A 14
+B 9
+A 2
+B 5
+A 3
+B 6
+B 0
+B 2
+A 11
+B 12
+B 9
+B 10
+B 15
+B 11
+B 15
+A 8
+B 2
+A 5
+B 5
+B 8
+B 14
+B 7
+A 8
+A 4
+B 9
+A 7
+A 11
+B 13
+A 12
+B 9
+A 7
+B 1
+A 4
+A 1
+B 8
+B 10
+B 1
+B 5
+A 9
+A 12
+A 11
+B 11
+B 13
+B 13
+B 13
+A 6
+A 14
+B 15
+B 11
+B 10
+B 14
+A 6
+A 11
+A 7
+B 1
+A 3
+B 7
+A 12
+B 15
+A 10
+A 10
+B 6
+B 12
+A 13
+B 13
+B 12
+A 10
+A 8
+B 8
+A 11
+A 13
+B 12
+A 16
+B 11
+A 7
+B 8
+A 3
+A 7
+A 6
+B 8
+B 12
+B 6
+A 3
+A 5
+A 4
+A 12
+A 3
+A 12
+A 12
+A 6
+B 3
+A 3
+A 6
+A 7
+A 8
+boundary-output-2
+400 A

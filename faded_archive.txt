@@ -1,0 +1,1800 @@
+==================== SECTION 1: QUESTION DETAILS ====================
+
+A message made of the letters A and B is stored as a sequence of maximal runs. Each record gives a letter and the length of one uninterrupted block of that letter, so consecutive original records always have different letters.
+During storage, two non-overlapping pairs of consecutive original records were each replaced by a single record labelled ?, whose length is the sum of the two replaced lengths. Each ? stands for exactly two original records of positive length; their letters and lengths are lost. The two ? records may be adjacent.
+You are given the stored records and the exact total number [b]C[/b] of A characters in the message. Count the distinct original messages that are consistent with the records, form a valid maximal-run representation and contain exactly [b]C[/b] letters A. Two reconstructions are counted separately only when their complete messages differ.
+[b]You are required to debug the following function:[/b]
+[code-c]int* FadedArchive(int m, int C, char* sym, int* len, int* returnSize);[/code][code-cpp]vector&lt;int&gt; FadedArchive(int m, int C, string&amp; sym, vector&lt;int&gt;&amp; len);[/code][code-java]static int[] FadedArchive(int m, int C, String sym, int[] len)[/code][code-python]def FadedArchive(m, C, sym, length):[/code]
+
+The function accepts [b]m, C,[/b] the string [b]sym[/b] of the [b]m[/b] record symbols (A, B or ?) and the 0-indexed array of record lengths. It must return a single array containing one integer: the number of distinct valid original messages. In C, the size of the returned array is stored in [b]returnSize.[/b]
+
+[b]Note:[/b][ul][li]A ? record expands either as A then B or as B then A, and the two parts must fit with the neighbouring runs.[/li][li]If no reconstruction is possible, the answer is [b]0.[/b][/li][/ul]
+[b]Input Format:[/b][ul][li]The first line contains [b]m[/b] and [b]C.[/b][/li][li]Each of the next [b]m[/b] lines contains a symbol (A, B or ?) and a length, in original left-to-right order.[/li][/ul][b]Input will be read from the STDIN by the candidate.[/b]
+
+[b]Output Format:[/b]
+Print one integer: the number of distinct valid original messages.
+[b]The output will be matched to the candidate&#39;s output printed on the STDOUT.[/b]
+
+[b]Constraints:[/b][ul][li]2 &le; [b]m[/b] &le; 1000, and exactly two symbols are ?[/li][li]Let [b]N[/b] be the sum of all lengths; 4 &le; [b]N[/b] &le; 10[sup]4[/sup][/li][li]Every A or B record has length at least 1; every ? record has length at least 2[/li][li]0 &le; [b]C[/b] &le; [b]N[/b][/li][/ul]
+[b]Example:[/b]
+[b]Input:[/b]
+5 7
+A 2
+? 4
+B 1
+? 3
+A 2
+[b]Output:[/b]
+2
+[b]Explanation:[/b]
+The first ? lies between A and B, so it must expand as B then A; the second lies between B and A, so it must expand as A then B. The known records hold [b]4[/b] letters A, so the two damaged records must add [b]3[/b] more. With A-lengths [b]x[/b] and [b]y,[/b] 1 &le; [b]x[/b] &le; 3, 1 &le; [b]y[/b] &le; 2 and [b]x + y = 3,[/b] giving (1, 2) and (2, 1): [b]two[/b] messages.
+
+[b]Sample Input[/b]
+3 3
+A 1
+? 2
+? 3
+[b]Sample Output[/b]
+1
+
+
+==================== SECTION 2: CODE TEMPLATE ====================
+
+----- Language: C -----
+
+Prefix:
+int* FadedArchive(int m, int C, char* sym, int* len, int* returnSize);
+
+int main()
+{
+    //Input read from STDIN
+    int *p = FadedArchive(m, C, sym, len, &returnSize);
+    //Value in p is printed to STDOUT
+    return 0;
+}
+
+Suffix:
+int* FadedArchive(int m, int C, char* sym, int* len, int* returnSize)
+{
+/* Write your code here. */
+    int known = 0, d1 = -1, d2 = -1;
+    for (int i = 0; i < m; i++)
+    {
+        if (sym[i] == 'A')
+            known += len[i];
+        else if (sym[i] == '?')
+        {
+            if (d1 == -1)
+                d1 = i;
+            else
+                d2 = i;
+        }
+    }
+    int orders = 0;
+    for (int o1 = 0; o1 < 2; o1++)
+    {
+        for (int o2 = 0; o2 < 2; o2++)
+        {
+            char prev = ' ';
+            int ok = 1;
+            for (int i = 0; i < m; i++)
+            {
+                if (sym[i] == '?')
+                {
+                    int o = (i == d1) ? o1 : o2;
+                    char first = (o == 0) ? 'A' : 'B';
+                    char second = (o == 0) ? 'A' : 'B';
+                    if (first == prev)
+                        ok = 0;
+                    prev = second;
+                }
+                else
+                {
+                    if (sym[i] == prev)
+                        ok = 0;
+                    prev = sym[i];
+                }
+            }
+            if (ok)
+                orders++;
+        }
+    }
+    int need = C - known, splits = 0;
+    for (int x = 1; x <= len[d1]; x++)
+    {
+        int y = need - x;
+        if (y >= 1 && y < len[d2])
+            splits++;
+    }
+    int* result = (int*)malloc(sizeof(int));
+    result[0] = orders * splits;
+    *returnSize = 1;
+    return result;
+}
+
+----- Language: C++ -----
+
+Prefix:
+vector<int> FadedArchive(int m, int C, string& sym, vector<int>& len);
+
+int main()
+{
+    //Input read from STDIN
+    vector<int> p = FadedArchive(m, C, sym, len);
+    //Value in p is printed to STDOUT
+    return 0;
+}
+
+Suffix:
+vector<int> FadedArchive(int m, int C, string& sym, vector<int>& len)
+{
+/* Write your code here. */
+    int known = 0, d1 = -1, d2 = -1;
+    for (int i = 0; i < m; i++)
+    {
+        if (sym[i] == 'A')
+            known += len[i];
+        else if (sym[i] == '?')
+        {
+            if (d1 == -1)
+                d1 = i;
+            else
+                d2 = i;
+        }
+    }
+    int orders = 0;
+    for (int o1 = 0; o1 < 2; o1++)
+    {
+        for (int o2 = 0; o2 < 2; o2++)
+        {
+            char prev = ' ';
+            int ok = 1;
+            for (int i = 0; i < m; i++)
+            {
+                if (sym[i] == '?')
+                {
+                    int o = (i == d1) ? o1 : o2;
+                    char first = (o == 0) ? 'A' : 'B';
+                    char second = (o == 0) ? 'A' : 'B';
+                    if (first == prev)
+                        ok = 0;
+                    prev = second;
+                }
+                else
+                {
+                    if (sym[i] == prev)
+                        ok = 0;
+                    prev = sym[i];
+                }
+            }
+            if (ok)
+                orders++;
+        }
+    }
+    int need = C - known, splits = 0;
+    for (int x = 1; x <= len[d1]; x++)
+    {
+        int y = need - x;
+        if (y >= 1 && y < len[d2])
+            splits++;
+    }
+    return {orders * splits};
+}
+
+----- Language: Java -----
+
+Prefix:
+class SolutionClass {
+    public static void main(String[] args) throws java.lang.Exception {
+        //Input read from STDIN
+        int[] p = FadedArchive(m, C, sym, len);
+        //Value in p is printed to STDOUT
+    }
+}
+
+Suffix:
+static int[] FadedArchive(int m, int C, String sym, int[] len) {
+    /* Write your code here. */
+    int known = 0, d1 = -1, d2 = -1;
+    for (int i = 0; i < m; i++) {
+        if (sym.charAt(i) == 'A')
+            known += len[i];
+        else if (sym.charAt(i) == '?') {
+            if (d1 == -1)
+                d1 = i;
+            else
+                d2 = i;
+        }
+    }
+    int orders = 0;
+    for (int o1 = 0; o1 < 2; o1++) {
+        for (int o2 = 0; o2 < 2; o2++) {
+            char prev = ' ';
+            boolean ok = true;
+            for (int i = 0; i < m; i++) {
+                if (sym.charAt(i) == '?') {
+                    int o = (i == d1) ? o1 : o2;
+                    char first = (o == 0) ? 'A' : 'B';
+                    char second = (o == 0) ? 'A' : 'B';
+                    if (first == prev)
+                        ok = false;
+                    prev = second;
+                } else {
+                    if (sym.charAt(i) == prev)
+                        ok = false;
+                    prev = sym.charAt(i);
+                }
+            }
+            if (ok)
+                orders++;
+        }
+    }
+    int need = C - known, splits = 0;
+    for (int x = 1; x <= len[d1]; x++) {
+        int y = need - x;
+        if (y >= 1 && y < len[d2])
+            splits++;
+    }
+    return new int[]{orders * splits};
+}
+
+----- Language: Python -----
+
+Prefix:
+# Input read from STDIN
+p = FadedArchive(m, C, sym, length)
+# Values at p are printed to STDOUT
+
+Suffix:
+def FadedArchive(m, C, sym, length):
+    # Write your code here.
+    known = 0
+    d1 = -1
+    d2 = -1
+    for i in range(m):
+        if sym[i] == 'A':
+            known += length[i]
+        elif sym[i] == '?':
+            if d1 == -1:
+                d1 = i
+            else:
+                d2 = i
+    orders = 0
+    for o1 in range(2):
+        for o2 in range(2):
+            prev = ' '
+            ok = True
+            for i in range(m):
+                if sym[i] == '?':
+                    o = o1 if i == d1 else o2
+                    first = 'A' if o == 0 else 'B'
+                    second = 'A' if o == 0 else 'B'
+                    if first == prev:
+                        ok = False
+                    prev = second
+                else:
+                    if sym[i] == prev:
+                        ok = False
+                    prev = sym[i]
+            if ok:
+                orders += 1
+    need = C - known
+    splits = 0
+    for x in range(1, length[d1] + 1):
+        y = need - x
+        if y >= 1 and y < length[d2]:
+            splits += 1
+    return [orders * splits]
+
+
+==================== SECTION 3: BASE TEMPLATE ====================
+
+----- Language: C -----
+
+Template:
+#include<stdio.h>
+#include<stdlib.h>
+
+int* FadedArchive(int m, int C, char* sym, int* len, int* returnSize);
+
+int main()
+{
+    int m, C;
+    scanf("%d %d", &m, &C);
+    char *sym = (char *)(malloc((m + 1) * sizeof(char)));
+    int *len = (int *)(malloc(m * sizeof(int)));
+    for(int i = 0; i < m; i++)
+        scanf(" %c %d", &sym[i], &len[i]);
+    sym[m] = '\0';
+    int returnSize = 0;
+    __DEBUG_START(127);
+    int *p = FadedArchive(m, C, sym, len, &returnSize);
+    __DEBUG_END(127);
+    printf("%d\n", p[0]);
+    return 0;
+}
+
+----- Language: C++ -----
+
+Template:
+#include<bits/stdc++.h>
+using namespace std;
+
+vector<int> FadedArchive(int m, int C, string& sym, vector<int>& len);
+
+int main()
+{
+    int m, C;
+    cin >> m >> C;
+    string sym(m, ' ');
+    vector<int> len(m);
+    for(int i = 0; i < m; i++)
+        cin >> sym[i] >> len[i];
+    __DEBUG_START(127);
+    vector<int> p = FadedArchive(m, C, sym, len);
+    __DEBUG_END(127);
+    cout << p[0] << "\n";
+    return 0;
+}
+
+----- Language: Java -----
+
+Template:
+import java.util.*;
+
+class SolutionClass {
+    public static void main(String[] args) throws java.lang.Exception {
+        Scanner scan = new Scanner(System.in);
+        int m = scan.nextInt();
+        int C = scan.nextInt();
+        char[] s = new char[m];
+        int[] len = new int[m];
+        for(int i = 0; i < m; i++)
+        {
+            s[i] = scan.next().charAt(0);
+            len[i] = scan.nextInt();
+        }
+        String sym = new String(s);
+        CojUserHelperFunctions.__DEBUG_START(127);
+        int[] p = FadedArchive(m, C, sym, len);
+        CojUserHelperFunctions.__DEBUG_END(127);
+        System.out.println(p[0]);
+    }
+    /*{__Include_Candidate_Code_Starts__}*/
+}
+
+----- Language: Python -----
+
+Template:
+#{__Include_Candidate_Code_Starts__}#
+m, C = map(int, input().split())
+sym = ""
+length = []
+for i in range(m):
+    s, l = input().split()
+    sym += s
+    length.append(int(l))
+p = FadedArchive(m, C, sym, length)
+print(p[0])
+
+
+==================== SECTION 4: TEST CASES ====================
+
+sample-input-1
+5 8
+? 4
+B 2
+A 3
+? 6
+B 3
+sample-output-1
+3
+
+sample-input-2
+3 9
+A 2
+? 6
+? 7
+sample-output-2
+5
+
+basic-input-1
+6 17
+B 4
+? 9
+A 2
+B 4
+A 5
+? 8
+basic-output-1
+6
+
+basic-input-2
+4 3
+A 1
+? 3
+B 2
+? 2
+basic-output-2
+1
+
+basic-input-3
+6 6
+B 2
+? 4
+A 1
+B 3
+? 3
+A 2
+basic-output-3
+2
+
+basic-input-4
+5 7
+B 1
+? 5
+A 2
+? 5
+B 1
+basic-output-4
+4
+
+edge-input-1
+2 3
+? 2
+? 2
+edge-output-1
+0
+
+edge-input-2
+8 27
+A 7
+B 1
+A 3
+B 3
+A 5
+? 10
+? 12
+B 6
+edge-output-2
+9
+
+corner-input-1
+4 5
+A 1
+? 3
+A 1
+? 4
+corner-output-1
+0
+
+corner-input-2
+2 7
+? 5
+? 9
+corner-output-2
+8
+
+boundary-input-1
+1000 2437
+B 2
+A 6
+B 1
+A 2
+B 4
+A 9
+B 7
+A 8
+B 9
+A 2
+B 3
+A 7
+B 3
+A 6
+B 2
+A 7
+B 7
+A 8
+B 1
+A 1
+B 3
+A 7
+B 4
+A 8
+B 3
+A 1
+B 8
+A 8
+B 6
+A 7
+B 8
+A 1
+B 4
+A 1
+B 3
+A 9
+B 8
+A 4
+B 9
+A 9
+B 5
+A 6
+B 8
+A 7
+B 8
+A 2
+B 5
+A 2
+B 9
+A 9
+B 8
+A 6
+B 2
+A 3
+B 3
+A 7
+B 9
+A 2
+B 9
+A 5
+B 3
+A 9
+B 4
+A 4
+B 2
+A 9
+B 9
+A 2
+B 7
+A 5
+B 4
+A 3
+B 7
+A 6
+B 9
+A 4
+B 1
+A 9
+B 5
+A 3
+B 7
+A 8
+B 7
+A 6
+B 5
+? 12
+A 9
+B 1
+A 4
+B 1
+A 5
+B 4
+A 6
+B 1
+A 2
+B 6
+A 6
+B 5
+A 3
+B 6
+A 7
+B 4
+A 5
+B 7
+A 4
+B 9
+A 4
+B 2
+A 2
+B 5
+A 3
+B 6
+A 5
+B 5
+A 6
+B 6
+A 3
+B 4
+A 1
+B 6
+A 4
+B 2
+A 3
+B 7
+A 8
+B 3
+A 3
+B 3
+A 7
+B 9
+A 1
+B 8
+A 4
+B 5
+A 1
+B 8
+A 5
+B 7
+A 9
+B 3
+A 2
+B 7
+A 6
+B 4
+A 9
+B 4
+A 6
+B 6
+A 8
+B 2
+A 3
+B 5
+A 4
+B 5
+A 4
+B 5
+A 2
+B 2
+A 8
+B 8
+A 5
+B 5
+A 9
+B 4
+A 2
+B 9
+A 7
+B 1
+A 8
+B 1
+A 1
+B 4
+A 6
+B 5
+A 8
+B 2
+A 3
+B 5
+A 9
+B 6
+A 1
+B 5
+A 2
+B 3
+A 4
+B 5
+A 2
+B 9
+A 8
+B 5
+A 1
+B 1
+A 1
+B 4
+A 5
+B 3
+A 5
+B 8
+A 1
+B 2
+A 2
+B 3
+A 8
+B 8
+A 4
+B 2
+A 2
+B 6
+A 1
+B 7
+A 9
+B 6
+A 6
+B 7
+A 2
+B 4
+A 4
+B 6
+A 3
+B 6
+A 8
+B 6
+A 6
+B 3
+A 1
+B 1
+A 4
+B 1
+A 4
+B 3
+A 3
+B 8
+A 8
+B 4
+A 8
+B 8
+A 5
+B 2
+A 2
+B 1
+A 1
+B 5
+A 5
+B 4
+A 2
+B 7
+A 6
+B 6
+A 2
+B 7
+A 7
+B 6
+A 9
+B 6
+A 1
+B 3
+A 5
+B 7
+A 3
+B 1
+A 6
+B 8
+A 8
+B 3
+A 2
+B 6
+A 2
+B 4
+A 5
+B 1
+A 1
+B 4
+A 6
+B 9
+A 8
+B 4
+A 4
+B 8
+A 3
+B 1
+A 4
+B 9
+A 1
+B 3
+A 5
+B 6
+A 9
+B 5
+A 5
+B 3
+A 7
+B 8
+A 1
+B 2
+A 1
+B 7
+A 9
+B 6
+A 1
+B 1
+A 8
+B 7
+A 5
+B 2
+A 2
+B 9
+A 4
+B 6
+A 4
+B 3
+A 7
+B 6
+A 7
+B 4
+A 5
+B 6
+A 4
+B 8
+A 1
+B 7
+A 3
+B 8
+A 6
+B 6
+A 9
+B 2
+A 9
+B 1
+A 4
+B 9
+A 2
+B 4
+A 6
+B 7
+A 7
+B 1
+A 1
+B 5
+A 5
+B 1
+A 8
+B 2
+A 1
+B 5
+A 7
+B 5
+A 3
+B 3
+A 7
+B 5
+A 2
+B 6
+A 1
+B 6
+A 4
+B 2
+A 5
+B 7
+A 6
+B 5
+A 2
+B 4
+A 3
+B 2
+A 4
+B 4
+A 8
+B 1
+A 1
+B 9
+A 6
+B 9
+A 5
+B 6
+A 2
+B 8
+A 2
+B 9
+A 2
+B 6
+A 5
+B 6
+A 6
+B 2
+A 8
+B 7
+A 6
+B 8
+A 8
+B 3
+A 1
+B 3
+A 4
+B 2
+A 5
+B 4
+A 1
+B 5
+A 5
+B 5
+A 7
+B 6
+A 1
+B 1
+A 3
+B 2
+A 4
+B 9
+A 1
+B 8
+A 7
+B 8
+A 8
+B 8
+A 2
+B 3
+A 7
+B 8
+A 3
+B 8
+A 5
+B 1
+A 9
+B 6
+A 1
+B 3
+A 4
+B 1
+A 2
+B 1
+A 9
+B 3
+A 6
+B 3
+A 5
+B 8
+A 9
+B 3
+A 8
+B 7
+A 3
+B 5
+A 3
+B 3
+A 5
+B 3
+A 1
+B 7
+A 6
+B 1
+A 8
+B 2
+A 7
+B 1
+A 4
+B 4
+A 2
+B 1
+A 1
+B 9
+A 8
+B 7
+A 1
+B 7
+A 5
+B 4
+A 8
+B 3
+A 7
+B 8
+A 8
+B 9
+A 5
+B 3
+A 8
+B 7
+A 1
+B 1
+A 4
+B 3
+A 5
+B 6
+A 9
+B 2
+A 3
+B 6
+A 4
+B 7
+A 9
+B 5
+A 7
+B 5
+A 8
+B 4
+A 4
+B 6
+A 3
+B 9
+A 6
+B 5
+A 4
+B 5
+A 9
+B 9
+A 1
+B 9
+A 6
+B 6
+A 4
+B 8
+A 3
+B 2
+A 7
+B 9
+A 6
+B 5
+A 4
+B 7
+A 6
+B 2
+A 9
+B 6
+A 4
+B 2
+A 4
+B 8
+A 1
+B 3
+A 2
+B 6
+A 6
+B 3
+A 6
+B 1
+A 3
+B 1
+A 2
+B 1
+A 5
+B 4
+A 6
+B 5
+A 6
+B 1
+A 8
+B 7
+A 8
+B 7
+A 4
+B 5
+A 1
+B 9
+A 7
+B 5
+A 9
+B 9
+A 9
+B 2
+A 8
+B 5
+A 2
+B 2
+A 9
+B 7
+A 9
+B 6
+A 4
+B 9
+A 4
+B 6
+A 8
+B 6
+A 2
+B 5
+A 3
+B 7
+A 3
+B 2
+A 8
+B 3
+A 6
+B 6
+A 7
+B 1
+A 8
+B 3
+A 1
+B 2
+A 4
+B 4
+A 7
+B 5
+A 3
+B 1
+A 1
+B 4
+A 1
+B 1
+A 6
+B 4
+A 9
+B 5
+A 6
+B 3
+? 8
+A 6
+B 3
+A 3
+B 7
+A 8
+B 5
+A 7
+B 6
+A 5
+B 1
+A 5
+B 7
+A 6
+B 7
+A 4
+B 8
+A 4
+B 5
+A 9
+B 8
+A 6
+B 9
+A 5
+B 5
+A 9
+B 3
+A 7
+B 6
+A 3
+B 4
+A 3
+B 7
+A 9
+B 6
+A 7
+B 6
+A 8
+B 3
+A 6
+B 5
+A 2
+B 5
+A 4
+B 6
+A 3
+B 9
+A 3
+B 3
+A 5
+B 3
+A 1
+B 7
+A 8
+B 4
+A 7
+B 3
+A 8
+B 5
+A 4
+B 2
+A 8
+B 1
+A 3
+B 5
+A 7
+B 9
+A 5
+B 4
+A 5
+B 5
+A 9
+B 2
+A 9
+B 1
+A 6
+B 9
+A 9
+B 4
+A 5
+B 9
+A 1
+B 6
+A 9
+B 2
+A 2
+B 5
+A 3
+B 8
+A 8
+B 8
+A 8
+B 3
+A 9
+B 4
+A 5
+B 8
+A 8
+B 3
+A 2
+B 4
+A 7
+B 2
+A 2
+B 1
+A 8
+B 5
+A 9
+B 1
+A 9
+B 4
+A 7
+B 5
+A 5
+B 1
+A 1
+B 4
+A 2
+B 1
+A 2
+B 5
+A 9
+B 2
+A 8
+B 3
+A 1
+B 6
+A 5
+B 5
+A 6
+B 2
+A 2
+B 7
+A 4
+B 8
+A 2
+B 7
+A 9
+B 1
+A 6
+B 6
+A 3
+B 6
+A 7
+B 2
+A 6
+B 8
+A 4
+B 1
+A 7
+B 3
+A 4
+B 5
+A 1
+B 7
+A 2
+B 6
+A 9
+B 5
+A 2
+B 4
+A 4
+B 2
+A 9
+B 3
+A 5
+B 5
+A 5
+B 9
+A 2
+B 7
+A 6
+B 1
+A 1
+B 6
+A 7
+B 5
+A 3
+B 1
+A 3
+B 1
+A 5
+B 8
+A 3
+B 8
+A 2
+B 4
+A 6
+B 8
+A 6
+B 3
+A 1
+B 1
+A 5
+B 9
+A 1
+B 2
+A 7
+B 3
+A 2
+B 6
+A 5
+B 4
+A 7
+B 3
+A 1
+B 9
+A 3
+B 5
+A 7
+B 1
+A 9
+B 3
+A 7
+B 9
+A 1
+B 1
+A 7
+B 7
+A 4
+B 8
+A 8
+B 6
+A 2
+B 7
+A 1
+B 1
+A 1
+B 6
+A 3
+B 9
+A 3
+B 1
+A 9
+B 5
+A 3
+B 6
+A 2
+B 8
+A 2
+B 6
+A 2
+B 5
+A 9
+B 4
+A 8
+B 7
+A 5
+B 7
+A 4
+B 4
+A 3
+B 6
+A 6
+B 2
+A 3
+B 4
+A 2
+B 9
+A 2
+B 6
+A 1
+B 2
+A 3
+B 4
+A 2
+B 7
+A 8
+B 7
+A 8
+B 8
+A 1
+B 7
+A 1
+B 5
+A 2
+B 6
+A 7
+B 6
+A 7
+B 7
+A 1
+B 2
+A 7
+B 8
+A 3
+B 3
+A 4
+B 7
+A 6
+B 5
+A 3
+B 5
+A 3
+B 4
+A 9
+B 6
+A 9
+B 5
+A 9
+B 6
+A 7
+B 6
+A 6
+B 3
+A 1
+B 7
+A 1
+B 1
+A 7
+B 1
+A 8
+B 5
+A 5
+B 3
+A 4
+B 5
+A 1
+B 1
+A 8
+B 9
+A 9
+B 1
+A 3
+B 7
+A 5
+B 8
+A 8
+B 7
+A 8
+B 2
+A 7
+B 6
+A 3
+B 9
+A 3
+B 1
+A 2
+B 1
+A 7
+B 9
+A 2
+B 1
+A 8
+B 7
+A 6
+B 6
+A 1
+B 1
+A 3
+B 4
+A 6
+B 6
+A 1
+B 2
+A 1
+B 1
+A 8
+B 4
+A 7
+B 6
+A 6
+B 2
+A 1
+B 3
+A 4
+B 2
+A 3
+B 5
+A 9
+B 7
+A 6
+B 1
+A 4
+B 4
+A 6
+B 9
+A 6
+B 5
+A 1
+B 7
+A 7
+B 9
+A 5
+B 5
+A 9
+B 4
+A 3
+B 3
+A 2
+B 7
+A 4
+B 1
+A 2
+B 3
+A 4
+boundary-output-1
+7
+
+boundary-input-2
+314 4751
+B 22
+A 32
+B 39
+A 24
+B 36
+A 27
+B 38
+A 25
+B 28
+A 21
+B 21
+A 35
+B 32
+A 23
+B 22
+A 22
+B 22
+A 21
+B 40
+A 24
+B 40
+A 23
+B 27
+A 21
+B 32
+A 24
+B 32
+A 26
+B 39
+A 35
+B 21
+A 38
+B 25
+A 36
+B 30
+A 24
+B 23
+A 24
+B 32
+A 25
+B 20
+A 26
+B 25
+A 35
+B 28
+A 24
+B 27
+A 40
+B 21
+A 32
+B 27
+A 26
+B 27
+A 20
+B 34
+A 30
+B 30
+A 38
+B 37
+A 38
+B 35
+A 37
+B 34
+A 22
+B 20
+A 25
+B 34
+A 35
+B 33
+A 31
+B 38
+A 35
+B 21
+A 34
+B 29
+A 37
+B 27
+? 11
+A 30
+B 40
+A 40
+B 33
+A 38
+B 25
+A 27
+B 34
+A 31
+B 29
+A 37
+B 40
+A 27
+B 24
+A 26
+B 38
+A 30
+B 34
+A 22
+B 31
+A 21
+B 35
+A 21
+B 20
+A 39
+B 26
+A 27
+B 22
+A 38
+B 34
+A 39
+B 38
+A 37
+B 37
+A 39
+B 36
+A 26
+B 29
+A 34
+B 24
+A 21
+B 27
+A 35
+B 20
+A 30
+B 40
+A 20
+B 25
+A 31
+B 36
+A 39
+B 33
+A 28
+B 38
+A 32
+B 35
+A 28
+B 29
+A 39
+B 22
+A 21
+B 28
+A 23
+B 29
+A 40
+B 25
+A 40
+B 31
+A 32
+B 32
+A 30
+B 38
+A 35
+B 38
+A 29
+B 21
+A 21
+B 24
+A 37
+B 39
+A 36
+B 40
+A 27
+B 29
+A 25
+B 21
+A 31
+B 40
+A 25
+B 21
+A 36
+B 31
+A 30
+B 20
+A 28
+B 23
+A 32
+B 29
+A 22
+B 22
+A 33
+B 31
+A 21
+B 20
+A 23
+B 38
+A 28
+B 23
+A 27
+B 38
+A 40
+B 35
+A 29
+B 39
+A 29
+B 39
+A 33
+B 25
+A 30
+B 25
+A 21
+B 26
+A 24
+B 29
+A 27
+B 24
+A 32
+B 32
+A 37
+B 32
+A 26
+B 20
+A 32
+B 27
+A 24
+B 28
+A 28
+B 40
+A 30
+B 20
+A 33
+B 28
+A 26
+B 21
+A 40
+B 20
+A 30
+B 20
+A 22
+B 37
+A 38
+B 25
+A 40
+B 29
+A 33
+B 21
+A 40
+B 21
+A 31
+B 27
+A 25
+B 36
+A 34
+B 24
+A 26
+B 26
+A 28
+B 23
+A 27
+B 33
+A 27
+B 23
+A 40
+B 22
+A 33
+B 27
+A 33
+B 29
+A 22
+B 21
+A 36
+B 26
+A 29
+B 25
+A 39
+B 21
+A 34
+B 34
+A 29
+B 20
+? 15
+A 40
+B 34
+A 22
+B 29
+A 35
+B 38
+A 26
+B 33
+A 36
+B 27
+A 37
+B 26
+A 26
+B 34
+A 33
+B 34
+A 22
+B 31
+A 34
+B 38
+A 32
+B 30
+A 40
+B 34
+A 28
+B 34
+A 32
+B 33
+A 27
+B 30
+A 29
+B 32
+A 39
+B 31
+A 27
+B 27
+A 39
+B 26
+A 32
+B 20
+A 35
+B 34
+A 38
+B 36
+A 32
+boundary-output-2
+10

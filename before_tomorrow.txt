@@ -1,0 +1,481 @@
+==================== SECTION 1: QUESTION DETAILS ====================
+
+You are given an array [b]A[/b] of [b]n[/b] integers. An output array [b]B[/b] is built by repeatedly removing one element from either end of the remaining array and appending it to [b]B.[/b]
+Normally the chosen end alternates: step 1 removes from the left, step 2 from the right, step 3 from the left, and so on. Exactly once, at an unknown step [b]t[/b] with 2 &le; [b]t[/b] &le; [b]n - 1,[/b] the same end as the previous step is used instead of switching. After step [b]t[/b] the ends alternate again, starting from the end used at step [b]t.[/b] When one element remains, it is removed whichever end is chosen.
+You are also given a partial observation of [b]B:[/b] a known integer gives the exact value at that position, and ? means the value is unknown. Among all values of [b]t[/b] that agree with every known observation, find all distinct values that could appear at position [b]k[/b] of [b]B.[/b]
+[b]You are required to debug the following function:[/b]
+[code-c]int* BeforeTomorrow(int n, int* A, int* obs, int k, int* returnSize);[/code][code-cpp]vector&lt;int&gt; BeforeTomorrow(int n, vector&lt;int&gt;&amp; A, vector&lt;int&gt;&amp; obs, int k);[/code][code-java]static int[] BeforeTomorrow(int n, int[] A, int[] obs, int k)[/code][code-python]def BeforeTomorrow(n, A, obs, k):[/code]
+
+The function accepts [b]n,[/b] the 0-indexed arrays [b]A[/b] and [b]obs,[/b] and the 1-based position [b]k.[/b] In [b]obs,[/b] an unknown observation (?) is passed as -1. It must return a single array whose first element is [b]c,[/b] the number of distinct possible values at [b]B&#91;k&#93;,[/b] followed by those [b]c[/b] values in strictly increasing order. In C, the size of the returned array is stored in [b]returnSize.[/b]
+
+[b]Note:[/b][ul][li]Each valid [b]t[/b] produces one complete array [b]B;[/b] different values of [b]t[/b] may give the same value at position [b]k,[/b] and such a value is reported once.[/li][li]If no value of [b]t[/b] agrees with the observations, the answer is just [b]0.[/b][/li][/ul]
+[b]Input Format:[/b][ul][li]The first line contains [b]n.[/b][/li][li]The second line contains [b]n[/b] integers [b]A[1], A[2], ..., A[n].[/b][/li][li]The third line contains [b]n[/b] observations, each either ? or an integer.[/li][li]The fourth line contains [b]k.[/b][/li][/ul][b]Input will be read from the STDIN by the candidate.[/b]
+
+[b]Output Format:[/b]
+Print [b]c[/b] followed by the [b]c[/b] possible values in strictly increasing order, all on one line separated by single spaces.
+[b]The output will be matched to the candidate&#39;s output printed on the STDOUT.[/b]
+
+[b]Constraints:[/b][ul][li]3 &le; [b]n[/b] &le; 500[/li][li]0 &le; [b]A&#91;i&#93;[/b] &le; 10[sup]6[/sup][/li][li]Each observation is ? or an integer between 0 and 10[sup]6[/sup][/li][li]1 &le; [b]k[/b] &le; [b]n[/b][/li][/ul]
+[b]Example:[/b]
+[b]Input:[/b]
+6
+4 7 4 8 1 3
+? 3 ? ? ? ?
+4
+[b]Output:[/b]
+3 1 4 7
+[b]Explanation:[/b]
+B[2] must be [b]3.[/b] With [b]t = 2[/b] the second value would be 7, so [b]t = 2[/b] is invalid. [b]t = 3[/b] gives [4, 3, 1, 7, 8, 4], [b]t = 4[/b] gives [4, 3, 7, 4, 1, 8] and [b]t = 5[/b] gives [4, 3, 7, 1, 8, 4]. Their fourth values are 7, 4 and 1, so the answer is [b]3 1 4 7.[/b]
+
+[b]Sample Input[/b]
+5
+2 5 8 1 6
+? 5 ? 5 ?
+3
+[b]Sample Output[/b]
+0
+
+
+==================== SECTION 2: CODE TEMPLATE ====================
+
+----- Language: C -----
+
+Prefix:
+int* BeforeTomorrow(int n, int* A, int* obs, int k, int* returnSize);
+
+int main()
+{
+    //Input read from STDIN
+    int *p = BeforeTomorrow(n, A, obs, k, &returnSize);
+    //Value in p is printed to STDOUT
+    return 0;
+}
+
+Suffix:
+int* BeforeTomorrow(int n, int* A, int* obs, int k, int* returnSize)
+{
+/* Write your code here. */
+    int* result = (int*)malloc((n + 1) * sizeof(int));
+    int count = 0;
+    for (int t = 2; t < n - 1; t++)
+    {
+        int left = 0, right = n - 1, side = 0, ok = 1, valueK = 0;
+        for (int step = 1; step <= n; step++)
+        {
+            if (step > 1 && step != t)
+                side = 1 - side;
+            int v;
+            if (side == 0)
+                v = A[left++];
+            else
+                v = A[right--];
+            if (obs[step - 1] != -1 && obs[step - 1] != v)
+                ok = 0;
+            if (step == k)
+                valueK = v;
+        }
+        if (ok)
+        {
+            int seen = 0;
+            for (int q = 1; q < count; q++)
+            {
+                if (result[q] == valueK)
+                    seen = 1;
+            }
+            if (!seen)
+            {
+                count++;
+                int q = count;
+                while (q > 1 && result[q - 1] > valueK)
+                {
+                    result[q] = result[q - 1];
+                    q--;
+                }
+                result[q] = valueK;
+            }
+        }
+    }
+    result[0] = count;
+    *returnSize = count + 1;
+    return result;
+}
+
+----- Language: C++ -----
+
+Prefix:
+vector<int> BeforeTomorrow(int n, vector<int>& A, vector<int>& obs, int k);
+
+int main()
+{
+    //Input read from STDIN
+    vector<int> p = BeforeTomorrow(n, A, obs, k);
+    //Value in p is printed to STDOUT
+    return 0;
+}
+
+Suffix:
+vector<int> BeforeTomorrow(int n, vector<int>& A, vector<int>& obs, int k)
+{
+/* Write your code here. */
+    vector<int> result(n + 1, 0);
+    int count = 0;
+    for (int t = 2; t < n - 1; t++)
+    {
+        int left = 0, right = n - 1, side = 0, ok = 1, valueK = 0;
+        for (int step = 1; step <= n; step++)
+        {
+            if (step > 1 && step != t)
+                side = 1 - side;
+            int v;
+            if (side == 0)
+                v = A[left++];
+            else
+                v = A[right--];
+            if (obs[step - 1] != -1 && obs[step - 1] != v)
+                ok = 0;
+            if (step == k)
+                valueK = v;
+        }
+        if (ok)
+        {
+            int seen = 0;
+            for (int q = 1; q < count; q++)
+            {
+                if (result[q] == valueK)
+                    seen = 1;
+            }
+            if (!seen)
+            {
+                count++;
+                int q = count;
+                while (q > 1 && result[q - 1] > valueK)
+                {
+                    result[q] = result[q - 1];
+                    q--;
+                }
+                result[q] = valueK;
+            }
+        }
+    }
+    result[0] = count;
+    result.resize(count + 1);
+    return result;
+}
+
+----- Language: Java -----
+
+Prefix:
+class SolutionClass {
+    public static void main(String[] args) throws java.lang.Exception {
+        //Input read from STDIN
+        int[] p = BeforeTomorrow(n, A, obs, k);
+        //Value in p is printed to STDOUT
+    }
+}
+
+Suffix:
+static int[] BeforeTomorrow(int n, int[] A, int[] obs, int k) {
+    /* Write your code here. */
+    int[] result = new int[n + 1];
+    int count = 0;
+    for (int t = 2; t < n - 1; t++) {
+        int left = 0, right = n - 1, side = 0, valueK = 0;
+        boolean ok = true;
+        for (int step = 1; step <= n; step++) {
+            if (step > 1 && step != t)
+                side = 1 - side;
+            int v;
+            if (side == 0)
+                v = A[left++];
+            else
+                v = A[right--];
+            if (obs[step - 1] != -1 && obs[step - 1] != v)
+                ok = false;
+            if (step == k)
+                valueK = v;
+        }
+        if (ok) {
+            boolean seen = false;
+            for (int q = 1; q < count; q++) {
+                if (result[q] == valueK)
+                    seen = true;
+            }
+            if (!seen) {
+                count++;
+                int q = count;
+                while (q > 1 && result[q - 1] > valueK) {
+                    result[q] = result[q - 1];
+                    q--;
+                }
+                result[q] = valueK;
+            }
+        }
+    }
+    result[0] = count;
+    return Arrays.copyOf(result, count + 1);
+}
+
+----- Language: Python -----
+
+Prefix:
+# Input read from STDIN
+p = BeforeTomorrow(n, A, obs, k)
+# Values at p are printed to STDOUT
+
+Suffix:
+def BeforeTomorrow(n, A, obs, k):
+    # Write your code here.
+    result = [0] * (n + 1)
+    count = 0
+    for t in range(2, n - 1):
+        left = 0
+        right = n - 1
+        side = 0
+        ok = True
+        value_k = 0
+        for step in range(1, n + 1):
+            if step > 1 and step != t:
+                side = 1 - side
+            if side == 0:
+                v = A[left]
+                left += 1
+            else:
+                v = A[right]
+                right -= 1
+            if obs[step - 1] != -1 and obs[step - 1] != v:
+                ok = False
+            if step == k:
+                value_k = v
+        if ok:
+            seen = False
+            for q in range(1, count):
+                if result[q] == value_k:
+                    seen = True
+            if not seen:
+                count += 1
+                q = count
+                while q > 1 and result[q - 1] > value_k:
+                    result[q] = result[q - 1]
+                    q -= 1
+                result[q] = value_k
+    result[0] = count
+    return result[:count + 1]
+
+
+==================== SECTION 3: BASE TEMPLATE ====================
+
+----- Language: C -----
+
+Template:
+#include<stdio.h>
+#include<stdlib.h>
+
+int* BeforeTomorrow(int n, int* A, int* obs, int k, int* returnSize);
+
+int main()
+{
+    int n, k;
+    char token[32];
+    scanf("%d", &n);
+    int *A = (int *)(malloc(n * sizeof(int)));
+    int *obs = (int *)(malloc(n * sizeof(int)));
+    for(int i = 0; i < n; i++)
+        scanf("%d", &A[i]);
+    for(int i = 0; i < n; i++)
+    {
+        scanf("%31s", token);
+        obs[i] = (token[0] == '?') ? -1 : atoi(token);
+    }
+    scanf("%d", &k);
+    int returnSize = 0;
+    __DEBUG_START(127);
+    int *p = BeforeTomorrow(n, A, obs, k, &returnSize);
+    __DEBUG_END(127);
+    for(int i = 0; i < returnSize; i++)
+    {
+        if(i)
+            printf(" ");
+        printf("%d", p[i]);
+    }
+    printf("\n");
+    return 0;
+}
+
+----- Language: C++ -----
+
+Template:
+#include<bits/stdc++.h>
+using namespace std;
+
+vector<int> BeforeTomorrow(int n, vector<int>& A, vector<int>& obs, int k);
+
+int main()
+{
+    int n, k;
+    cin >> n;
+    vector<int> A(n), obs(n);
+    for(int i = 0; i < n; i++)
+        cin >> A[i];
+    for(int i = 0; i < n; i++)
+    {
+        string token;
+        cin >> token;
+        obs[i] = (token == "?") ? -1 : stoi(token);
+    }
+    cin >> k;
+    __DEBUG_START(127);
+    vector<int> p = BeforeTomorrow(n, A, obs, k);
+    __DEBUG_END(127);
+    for(int i = 0; i < (int)p.size(); i++)
+    {
+        if(i)
+            cout << " ";
+        cout << p[i];
+    }
+    cout << "\n";
+    return 0;
+}
+
+----- Language: Java -----
+
+Template:
+import java.util.*;
+
+class SolutionClass {
+    public static void main(String[] args) throws java.lang.Exception {
+        Scanner scan = new Scanner(System.in);
+        int n = scan.nextInt();
+        int[] A = new int[n];
+        int[] obs = new int[n];
+        for(int i = 0; i < n; i++)
+            A[i] = scan.nextInt();
+        for(int i = 0; i < n; i++)
+        {
+            String token = scan.next();
+            obs[i] = token.equals("?") ? -1 : Integer.parseInt(token);
+        }
+        int k = scan.nextInt();
+        CojUserHelperFunctions.__DEBUG_START(127);
+        int[] p = BeforeTomorrow(n, A, obs, k);
+        CojUserHelperFunctions.__DEBUG_END(127);
+        StringBuilder sb = new StringBuilder();
+        for(int i = 0; i < p.length; i++)
+        {
+            if(i > 0)
+                sb.append(' ');
+            sb.append(p[i]);
+        }
+        System.out.println(sb);
+    }
+    /*{__Include_Candidate_Code_Starts__}*/
+}
+
+----- Language: Python -----
+
+Template:
+#{__Include_Candidate_Code_Starts__}#
+n = int(input())
+A = list(map(int, input().split()))
+obs = [-1 if x == "?" else int(x) for x in input().split()]
+k = int(input())
+p = BeforeTomorrow(n, A, obs, k)
+print(*p)
+
+
+==================== SECTION 4: TEST CASES ====================
+
+sample-input-1
+7
+7 3 2 2 4 1 8
+7 ? ? ? ? ? ?
+5
+sample-output-1
+3 1 2 4
+
+sample-input-2
+8
+1 4 4 3 1 1 2 0
+1 ? ? ? ? ? ? ?
+6
+sample-output-2
+3 1 3 4
+
+basic-input-1
+7
+3 8 2 6 1 7 9
+? ? 8 ? ? ? ?
+4
+basic-output-1
+2 2 7
+
+basic-input-2
+9
+7 9 8 3 1 4 8 6 8
+7 ? ? ? ? ? ? 1 ?
+6
+basic-output-2
+2 3 8
+
+basic-input-3
+6
+4 7 4 8 1 3
+? ? ? ? ? ?
+3
+basic-output-3
+3 1 3 7
+
+basic-input-4
+10
+2 6 6 8 4 2 2 2 8 2
+? 2 ? ? ? ? ? ? ? ?
+8
+basic-output-4
+3 2 4 8
+
+edge-input-1
+4
+1 0 1000000 1
+1 1 ? ?
+3
+edge-output-1
+1 1000000
+
+edge-input-2
+5
+0 1 3 3 2
+0 ? ? ? 3
+1
+edge-output-2
+1 0
+
+corner-input-1
+12
+8 8 8 8 8 8 8 8 8 8 8 8
+8 8 8 8 8 8 8 8 8 8 8 8
+7
+corner-output-1
+1 8
+
+corner-input-2
+3
+5 5 0
+5 ? ?
+1
+corner-output-2
+1 5
+
+boundary-input-1
+500
+602896 871534 45173 369495 438484 61577 496323 295594 763553 856862 711448 583253 67794 826441 521159 954343 205442 416911 36214 687588 846342 739115 796986 378504 4215 813694 817890 829583 933955 7831 789428 401924 810839 319412 350472 48422 673221 781681 729773 909401 509079 201869 871487 863353 566995 180085 422459 187176 597269 524376 852640 197379 281598 648906 538147 989631 131222 223732 567093 205684 724699 828712 430227 566074 107963 964836 923856 544358 809363 166161 866765 404993 165613 872342 328705 517774 186823 733894 309814 554812 81154 926207 847246 194645 992830 48973 954336 469456 749401 515992 554027 808740 390312 696101 696109 587215 13244 568866 63803 914350 558930 241617 343613 317928 223430 721093 265405 44897 127168 636503 887126 36793 489676 448973 727653 499596 820593 893223 376552 442131 33705 400949 770121 760078 717079 292576 352806 277201 215940 687126 899969 14893 345930 601738 724472 11316 931648 333973 697639 743712 129008 917263 898829 445565 694869 905453 223165 710763 438851 102550 571106 92154 810382 646204 120307 456852 913038 442224 232542 750311 477488 780851 230890 970916 696892 509980 697330 465288 302345 425606 509071 789789 502689 431210 673284 880708 950506 824288 445601 400884 24425 470543 963281 648243 747780 32839 182186 941123 697044 855876 50233 156964 601474 269608 519608 780811 567686 375133 987481 637114 193568 578938 136808 327510 497447 861478 918087 527502 964499 364456 655684 857683 882365 127463 346922 187623 697526 329690 336747 537997 732704 605773 238616 202663 830121 6355 345240 488990 429316 72367 750998 565635 369999 834041 856813 699685 127822 58936 651916 169592 349405 901570 832113 895031 643287 41577 414719 105044 309626 57532 157558 15725 666224 617439 246431 852094 703335 802582 465336 350383 512288 696106 33961 738773 201010 556723 875545 824854 20700 105606 459971 144912 161743 491016 867930 513758 735158 203997 797825 129324 558067 2551 865177 75048 552647 443608 605255 982090 542373 128389 304337 189583 722155 751579 478178 438150 695816 62728 732520 138269 939942 335708 825418 669090 929956 428332 372690 81716 887257 919223 31279 421345 763339 219475 214344 148785 480703 155618 343674 325904 389560 187274 825501 463371 107728 415462 285846 744772 105810 744524 744999 111309 295898 73120 650132 896885 698751 681414 884402 838669 646943 871206 886619 928413 94856 723304 855495 151575 985290 335624 23444 175490 258464 506402 983621 566066 208016 489828 606774 586738 48535 311925 186508 664779 319872 904345 926499 399404 215006 755040 531667 966099 551404 449870 524804 114742 556997 877121 500365 263846 98526 574077 43688 102488 27096 553389 240409 109732 704442 447774 28897 585482 975630 693782 479194 872516 268310 176134 290195 425064 162260 400122 591962 225848 30545 516944 316478 428838 589836 887579 385140 540728 945279 216458 270509 888313 892474 786732 455153 591005 232714 971478 4352 814262 340605 340869 959792 924261 51408 127443 136228 169775 709021 634373 523474 765137 85256 704688 187513 908434 441674 702325 377081 464063 458692 206105 777544 618965 717806 571240 444177 419826 241106 807607 876414 913399 628516 346620 755843 891470 39757 987604 623473 328030 735334 396466 377166 410613 553107 819879 907246 656517 641697 607200 841178 390179 255112 593375 835851 512741 46737 881161 870736 626143 241103 65889 360589 858694 203737 127841 849545 878213 969449 835971 3431 149398 951726 427365 554758 234460
+? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ?
+499
+boundary-output-1
+2 15725 157558
+
+boundary-input-2
+500
+1 1 9 8 9 7 3 3 2 5 6 9 6 2 7 2 8 2 5 9 7 4 7 4 1 4 8 0 0 2 2 9 6 5 2 9 0 4 0 3 8 8 7 8 2 4 8 7 9 5 8 9 2 1 7 9 2 6 8 2 7 3 9 8 3 6 5 6 4 5 8 2 8 5 3 6 1 1 9 3 5 2 2 2 7 0 2 4 5 6 8 9 3 2 5 9 3 1 2 1 5 6 4 5 0 8 0 6 4 3 4 6 2 3 3 0 7 4 9 0 9 1 0 8 6 5 0 4 0 3 0 3 6 8 0 4 7 2 4 3 5 5 6 5 1 0 4 7 2 6 4 1 4 1 9 9 0 7 0 3 2 7 6 7 2 3 4 1 9 8 9 1 1 7 9 2 7 6 3 0 4 0 0 3 6 3 6 7 6 5 4 8 3 5 6 5 7 8 5 6 7 7 6 9 9 2 6 1 3 1 5 2 4 5 4 9 8 2 2 3 4 8 3 0 3 5 5 3 7 2 9 6 6 2 1 9 8 1 4 1 4 3 2 3 3 8 4 5 4 6 5 1 5 1 4 4 1 1 8 2 2 8 8 6 0 7 4 1 6 5 9 8 4 4 5 9 8 2 9 0 2 6 8 1 0 3 1 0 2 4 9 9 9 0 1 5 4 8 7 4 9 0 4 9 3 7 7 0 7 1 7 2 7 7 3 0 8 0 1 4 0 9 8 9 2 0 4 9 5 1 1 7 7 2 3 2 6 7 9 1 7 5 7 4 8 6 9 6 4 3 9 7 4 9 8 9 5 5 8 0 7 6 0 4 4 7 8 7 2 4 1 9 4 2 3 9 7 9 5 1 1 3 7 5 6 6 3 2 7 9 0 3 1 2 0 2 1 6 6 4 7 0 9 6 0 3 9 4 8 3 8 2 6 0 6 8 7 4 7 8 0 1 5 4 4 8 3 9 0 4 8 2 0 5 7 7 9 4 9 3 0 8 6 9 1 1 2 9 1 6 0 3 7 4 9 8 4 8 7 9 5 6 4 5 4 6 4 2 6 5 7 7 1 7 4 0 3 5 8 1 3 4 8 3 9 4 2 4 1 4 1 5 0 1 4 8 2 5 3 2
+? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ? ?
+498
+boundary-output-2
+3 1 4 6
